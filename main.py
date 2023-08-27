@@ -8,12 +8,16 @@ from twilio.base.exceptions import TwilioRestException
 
 from ConfigBuilder import ConfigBuilder
 
+from mangum import Mangum
+
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
+
+handler = Mangum(app)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -68,10 +72,12 @@ async def do_callings(
         builder.upload_to_s3(boto3_client, BytesIO(audio_file_content), s3_audio_filename)
 
         url = f"https://telephony-bot.s3.ap-south-1.amazonaws.com/{s3_audio_filename}"
-        print(url)
 
         for number in excel_csv_df[builder.header_name]:
-            builder.twilio_call(twilio_client, url, f"+91{number}")
+            if len(str(number)) == 10:
+                builder.twilio_call(twilio_client, url, f"+91{number}")
+            else:
+                builder.twilio_call(twilio_client, url, f"+{number}")
             
     except KeyError:
         return JSONResponse(content=f"Error reading CSV", status_code=400)
@@ -85,10 +91,6 @@ async def do_callings(
     except Exception as e:
         print(e)
         return JSONResponse(content="Something went wrong!", status_code=400)
-
-
-    # Send Calls
-    # f"https://telephony-bot.s3.ap-south-1.amazonaws.com/{s3_audio_filename}"
 
     return JSONResponse(
         content="Calls sent successfully", status_code=200
