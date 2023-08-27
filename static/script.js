@@ -1,8 +1,7 @@
 const dropArea = document.querySelector(".drag-area"),
-  dragText = dropArea.querySelector("header"),
   button = dropArea.querySelector("button"),
   input = dropArea.querySelector("input"),
-  submitButton = document.getElementById("submit-button");
+submitButton = document.getElementById("submit-button");
 
 let audioFile, excelFile;
 
@@ -10,12 +9,14 @@ button.onclick = () => {
   input.click();
 };
 
-submitButton.onclick = async () => {
+submitButton.addEventListener('click', async (event) => {
+  submitButton.classList.add('button--loading');
+  
   if (audioFile && excelFile) {
     const formData = new FormData();
     formData.append("excel_csv_file", excelFile);
     formData.append("audio_file", audioFile);
-
+    
     try {
       const response = await fetch("/", {
         method: "POST",
@@ -24,13 +25,28 @@ submitButton.onclick = async () => {
 
       const result = await response.json();
       console.log(result);
+      submitButton.classList.remove('button--loading');  
+
+
+      if (response.status === 400) {
+        showSnackbar(result);
+      } else {
+        showSnackbar(`Upload successful!, Sending calls`);
+      }
+
+
     } catch (error) {
+      submitButton.classList.remove('button--loading');  
       console.error("Error submitting POST request:", error);
+      showSnackbar("Upload failed. Please try again.", 5000); // Show error message
     }
   } else {
-    alert("Please upload both an audio file and an Excel file.");
+    submitButton.classList.remove('button--loading');
+    showSnackbar("Please upload both an audio file and an Excel file.");
   }
-};
+});
+
+
 
 
 input.addEventListener("change", function () {
@@ -59,44 +75,6 @@ input.addEventListener("change", function () {
   showFiles(); // calling the function to show selected files
 });
 
-dropArea.addEventListener("dragover", (event) => {
-  event.preventDefault();
-  dropArea.classList.add("active");
-  dragText.textContent = "Release to Upload Files";
-});
-
-dropArea.addEventListener("dragleave", () => {
-  dropArea.classList.remove("active");
-  dragText.textContent = "Drag & Drop to Upload Files";
-});
-
-dropArea.addEventListener("drop", (event) => {
-  event.preventDefault();
-
-  const files = event.dataTransfer.files;
-  if (files.length > 2) {
-    alert("Please drop only up to 2 files.");
-    return;
-  }
-
-  audioFile = null;
-  excelFile = null;
-
-  for (const file of files) {
-    if (file.type.startsWith("audio/")) {
-      audioFile = file;
-    } else if (
-      file.type ===
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-      file.type === "text/csv"
-    ) {
-      excelFile = file;
-    }
-  }
-
-  showFiles(); // calling the function to show selected files
-});
-
 function showFiles() {
   dropArea.innerHTML = ""; // Clear previous content
 
@@ -112,5 +90,14 @@ function showFiles() {
   }
 
   dropArea.classList.remove("active");
-  dragText.textContent = "Drag & Drop to Upload Files";
+}
+
+function showSnackbar(message, duration = 3000) {
+  const snackbar = document.getElementById("snackbar");
+  snackbar.textContent = message;
+  snackbar.classList.add("show");
+
+  setTimeout(() => {
+    snackbar.classList.remove("show");
+  }, duration);
 }
