@@ -8,16 +8,12 @@ from twilio.base.exceptions import TwilioRestException
 
 from ConfigBuilder import ConfigBuilder
 
-from mangum import Mangum
-
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
-
-handler = Mangum(app)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
