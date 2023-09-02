@@ -33,7 +33,7 @@ async def do_callings(
         File(description="Audio file that has to be played during a phone call"),
     ],
 ):
-    allowed_excel_extensions = ["xlsx", "csv"]
+    allowed_excel_extensions = ["xlsx", "csv", "xls"]
     allowed_audio_extensions = ["mp3", "wav"]
 
     excel_extension = excel_csv_file.filename.split(".")[-1]
@@ -54,7 +54,7 @@ async def do_callings(
         detected_encoding = chardet.detect(excel_csv_content)["encoding"]
         excel_csv_df = ""
 
-        if excel_extension == "xlsx":
+        if excel_extension == "xlsx" or excel_extension == 'xls':
             excel_csv_df = pd.read_excel(BytesIO(excel_csv_content))
         else:
             excel_csv_df = pd.read_csv(

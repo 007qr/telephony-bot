@@ -63,9 +63,11 @@ input.addEventListener("change", function () {
     if (file.type.startsWith("audio/")) {
       audioFile = file;
     } else if (
-      file.type ===
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-      file.type === "text/csv"
+      file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || // Excel file
+      file.type === "text/csv" || // CSV file
+      file.name.endsWith(".xlsx") || // Additional Excel format
+      file.name.endsWith(".xls") || // Additional Excel format
+      file.name.endsWith(".csv") // Additional CSV format
     ) {
       excelFile = file;
     }
