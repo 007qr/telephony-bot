@@ -32,24 +32,32 @@ async def do_callings(
         UploadFile,
         File(description="Audio file that has to be played during a phone call"),
     ],
+    text_file: Annotated[
+        UploadFile,
+        File(description="Text file which contains text message"),
+    ]
 ):
     allowed_excel_extensions = ["xlsx", "csv", "xls"]
     allowed_audio_extensions = ["mp3", "wav"]
+    allowed_text_extensions = ["txt"]
 
     excel_extension = excel_csv_file.filename.split(".")[-1]
     audio_extension = audio_file.filename.split(".")[-1]
+    text_extensions = text_file.filename.split(".")[-1]
 
     if (
         excel_extension not in allowed_excel_extensions
         or audio_extension not in allowed_audio_extensions
+        or text_extensions not in allowed_text_extensions
     ):
         return JSONResponse(
-            content="Invalid file extension. Allowed extensions: xlsx, csv for Excel/CSV, mp3, wav for audio.",
+            content="Invalid file extension. Allowed extensions: xlsx, csv for Excel/CSV, mp3, wav for audio. txt for text file",
             status_code=400,
         )
 
     excel_csv_content = await excel_csv_file.read()
-
+    text_file_content = await text_file.read()
+    print(BytesIO(text_file_content))
     try:
         detected_encoding = chardet.detect(excel_csv_content)["encoding"]
         excel_csv_df = ""
@@ -72,8 +80,10 @@ async def do_callings(
         for number in excel_csv_df[builder.header_name]:
             if len(str(number)) == 10:
                 builder.twilio_call(twilio_client, url, f"+91{number}")
+                builder.twilio_message(twilio_client, BytesIO(text_file_content), f"+91{number}")
             else:
                 builder.twilio_call(twilio_client, url, f"+{number}")
+                builder.twilio_message(twilio_client, BytesIO(text_file_content), f"+{number}")
             
     except KeyError:
         return JSONResponse(content=f"Error reading CSV", status_code=400)
@@ -81,7 +91,8 @@ async def do_callings(
     except pd.errors.ParserError as e:
         return JSONResponse(content=f"Error reading CSV: {str(e)}", status_code=400)
 
-    except TwilioRestException:
+    except TwilioRestException as e:
+        print(e)
         return JSONResponse(content='Check the mobile number!', status_code=400)
 
     except Exception as e:

@@ -44,7 +44,10 @@ class ConfigBuilder:
             to=f'{mobile_number}', 
             from_=f'{self.mobile_number}' )
         return call
-        
+    
+    def twilio_message(self, client, txt, mobile_number) -> None:
+        message = client.messages.create(from_=f'{self.mobile_number}', to=f'{mobile_number}', body=txt)
+        print(message.sid)
     
 
 

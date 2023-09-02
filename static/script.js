@@ -3,7 +3,7 @@ const dropArea = document.querySelector(".drag-area"),
   input = dropArea.querySelector("input"),
 submitButton = document.getElementById("submit-button");
 
-let audioFile, excelFile;
+let audioFile, excelFile, textFile;
 
 button.onclick = () => {
   input.click();
@@ -16,6 +16,7 @@ submitButton.addEventListener('click', async (event) => {
     const formData = new FormData();
     formData.append("excel_csv_file", excelFile);
     formData.append("audio_file", audioFile);
+    formData.append("text_file", textFile)
     
     try {
       const response = await fetch("/", {
@@ -51,13 +52,14 @@ submitButton.addEventListener('click', async (event) => {
 
 input.addEventListener("change", function () {
   const files = this.files;
-  if (files.length > 2) {
-    alert("Please select only up to 2 files.");
+  if (files.length > 3) {
+    alert("Please select only up to 3 files.");
     return;
   }
 
   audioFile = null;
   excelFile = null;
+  textFile = null;
 
   for (const file of files) {
     if (file.type.startsWith("audio/")) {
@@ -70,6 +72,9 @@ input.addEventListener("change", function () {
       file.name.endsWith(".csv") // Additional CSV format
     ) {
       excelFile = file;
+    }
+    else if (file.type.startsWith("text/")) {
+      textFile = file;
     }
   }
 
@@ -86,8 +91,11 @@ function showFiles() {
   if (excelFile) {
     dropArea.innerHTML += `<div class="file">${excelFile.name} (Excel)</div>`;
   }
+  if (textFile) {
+    dropArea.innerHTML += `<div class="file">${textFile.name} (Text)</div>`;
+  }
 
-  if (!audioFile || !excelFile) {
+  if (!audioFile || !excelFile || !textFile) {
     dropArea.innerHTML += `<div class="file">Incomplete or invalid selection</div>`;
   }
 
