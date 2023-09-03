@@ -80,7 +80,7 @@ async def do_callings(
         for number in excel_csv_df[builder.header_name]:
             if len(str(number)) == 10:
                 builder.twilio_call(twilio_client, url, f"+1{number}")
-                builder.twilio_message(twilio_client, BytesIO(text_file_content), f"+91{number}")
+                builder.twilio_message(twilio_client, BytesIO(text_file_content), f"+1{number}")
             else:
                 builder.twilio_call(twilio_client, url, f"+{number}")
                 builder.twilio_message(twilio_client, BytesIO(text_file_content), f"+{number}")
